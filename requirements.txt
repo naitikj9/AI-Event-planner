@@ -1,0 +1,14 @@
+# Core orchestration
+langgraph>=0.2.60
+langchain-core>=0.3.20
+langchain-openai>=0.2.10
+
+# Vector math for the in-memory RAG store
+numpy>=1.26
+
+# Data validation / structured outputs
+pydantic>=2.7
+
+# Config + nice CLI output
+python-dotenv>=1.0
+rich>=13.7

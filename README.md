@@ -97,6 +97,10 @@ notepad .env        # set OPENAI_API_KEY=sk-...
 
 ## 5. Run it
 
+> **Windows tip:** if `.\.venv\Scripts\Activate.ps1` is blocked by execution policy,
+> skip activation and call the venv's Python directly:
+> `.\.venv\Scripts\python.exe -m src.app` (same for `tests.test_cases`).
+
 ```powershell
 # Interactive — it asks you for an event, then pauses for your approval
 python -m src.app

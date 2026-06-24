@@ -1,18 +1,9 @@
-"""The LangGraph: nodes, edges, conditional routing, and human-in-the-loop.
+"""The LangGraph: nodes, edges, conditional routing and the human-in-the-loop.
 
-Flow
-----
-            ┌─> refuse ─────────────────────────────┐
- intake ─?──┤                                        ├─> END
-            └─> research ─?─> planner ─> compliance ─?
-                     │                        │
-                     └─> reject               ├─> reject ───────┐
-                                              ├─> finalize ─────┤
-                                              └─> human_approval ?
-                                                       │         │
-                                              approve ─┘  decline┘
-The "?" marks are conditional edges (routing decisions). human_approval pauses
-the graph with interrupt() until a person approves or declines.
+intake screens/parses the request and either refuses or moves on. research
+finds vendors (or rejects if no venue fits). planner builds the plan, compliance
+decides whether to finalize, reject, or ask a human. human_approval pauses the
+graph until the person approves or declines.
 """
 from __future__ import annotations
 
@@ -42,10 +33,10 @@ from .state import PlannerState
 def _make_serializer() -> JsonPlusSerializer:
     """Serializer that knows our Pydantic schemas.
 
-    The checkpointer must persist the graph state (which holds Pydantic models)
-    while the graph is paused for human approval. Registering our schema types in
-    the msgpack allowlist makes that round-trip clean and future-proof instead of
-    relying on the deprecated "allow everything with a warning" default.
+    The checkpointer has to persist the graph state (which holds Pydantic models)
+    while the graph is paused for human approval. Listing our types here makes
+    that round-trip clean instead of relying on the deprecated allow-everything
+    default.
     """
     return JsonPlusSerializer(
         allowed_msgpack_modules=[
@@ -59,19 +50,17 @@ def _make_serializer() -> JsonPlusSerializer:
         ]
     )
 
-# ---------------------------------------------------------------------------
-# Terminal / control nodes
-# ---------------------------------------------------------------------------
 
+# terminal / control nodes
 
 def refusal_node(state: PlannerState) -> dict:
-    """End state for out-of-scope or invalid requests (a guardrail outcome)."""
+    """End state for out-of-scope or invalid requests."""
     req = state["requirements"]
     if not req.in_scope:
         message = f"Request declined: {req.refusal_reason}"
     else:
         problems = validate_requirements(req)
-        message = "I can't plan this yet — " + "; ".join(problems)
+        message = "I can't plan this yet: " + "; ".join(problems)
     log_step("refusal", message)
     return {"status": "refused", "final_message": message, "log": [f"[refusal] {message}"]}
 
@@ -79,8 +68,8 @@ def refusal_node(state: PlannerState) -> dict:
 def reject_node(state: PlannerState) -> dict:
     """End state for a hard violation.
 
-    Two paths arrive here: (a) the research stage found no suitable venue, before
-    compliance runs; or (b) compliance flagged hard violations. Handle both.
+    Reached either when research found no suitable venue (before compliance) or
+    when compliance flagged hard violations. Handle both.
     """
     compliance = state.get("compliance")
     if compliance and compliance.violations:
@@ -95,18 +84,18 @@ def reject_node(state: PlannerState) -> dict:
 
 
 def human_approval_node(state: PlannerState) -> dict:
-    """HUMAN-IN-THE-LOOP. Pause and wait for a person to approve/decline.
+    """Human-in-the-loop: pause and wait for a person to approve/decline.
 
-    interrupt() suspends the graph and surfaces `payload` to the caller. When the
-    caller resumes with Command(resume="approve"/"decline"), execution re-enters
-    this node and interrupt() returns that value.
+    interrupt() suspends the graph and hands `payload` back to the caller. When
+    the caller resumes with Command(resume="approve"/"decline"), we re-enter this
+    node and interrupt() returns that value.
     """
     payload = {
         "summary": approval_summary(state),
         "action_required": "Approve booking? Reply 'approve' or 'decline'.",
     }
-    decision = interrupt(payload)  # <-- graph pauses here on first run
-    # Normalize to the first run of ASCII letters -> robust to BOM/encoding noise.
+    decision = interrupt(payload)  # graph pauses here on the first run
+    # take the first run of ASCII letters, robust to BOM/encoding noise
     match = re.search(r"[a-z]+", str(decision).lower())
     decision = match.group(0) if match else ""
     log_step("human_approval", f"Human responded: {decision}")
@@ -121,19 +110,16 @@ def declined_node(state: PlannerState) -> dict:
 
 
 def finalize_node(state: PlannerState) -> dict:
-    """End state for an approved plan — 'book' it and present the full plan."""
+    """End state for an approved plan: 'book' it and show the full plan."""
     message = format_plan(
         state["requirements"], state["shortlist"], state["plan"], state["compliance"]
     )
-    confirmation = "✅ BOOKED.\n\n" + message
+    confirmation = "BOOKED.\n\n" + message
     log_step("finalize", "Plan booked and finalized.")
     return {"status": "booked", "final_message": confirmation, "log": ["[finalize] booked"]}
 
 
-# ---------------------------------------------------------------------------
-# Routers (conditional edges)
-# ---------------------------------------------------------------------------
-
+# routers (conditional edges)
 
 def route_after_intake(state: PlannerState) -> str:
     req = state["requirements"]
@@ -143,7 +129,7 @@ def route_after_intake(state: PlannerState) -> str:
 
 
 def route_after_research(state: PlannerState) -> str:
-    # No venue means the event can't happen — skip straight to reject.
+    # no venue means the event can't happen, skip straight to reject
     return "planner" if state["shortlist"].venue is not None else "reject"
 
 
@@ -159,25 +145,20 @@ def route_after_human(state: PlannerState) -> str:
     return "finalize" if state["human_decision"].startswith("approve") else "declined"
 
 
-# ---------------------------------------------------------------------------
-# Graph assembly
-# ---------------------------------------------------------------------------
-
-
 def build_graph(checkpointer=None):
     """Build and compile the event-planning graph.
 
-    A checkpointer is REQUIRED for human-in-the-loop (interrupt) to work, because
-    the graph must persist its state while paused. We default to in-memory.
+    A checkpointer is required for the human-in-the-loop interrupt to work, since
+    the graph has to persist its state while paused. Defaults to in-memory.
     """
     g = StateGraph(PlannerState)
 
-    # Agent nodes
+    # agent nodes
     g.add_node("intake", intake_node)
     g.add_node("research", research_node)
     g.add_node("planner", planner_node)
     g.add_node("compliance", compliance_node)
-    # Control nodes
+    # control nodes
     g.add_node("refuse", refusal_node)
     g.add_node("reject", reject_node)
     g.add_node("human_approval", human_approval_node)

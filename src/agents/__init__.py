@@ -1,4 +1,4 @@
-"""The four specialized agents that make up the event-planning team."""
+"""The four agents that make up the planning team."""
 
 from .intake import intake_node
 from .venue import research_node

@@ -1,9 +1,8 @@
-"""Lightweight observability.
+"""Lightweight logging / observability.
 
-The rubric accepts "LangSmith traces OR clear logs/intermediate outputs". We do
-both: optional LangSmith (via env vars) AND a local trace that prints each step
-nicely and appends a JSON line per step to runs/trace-*.jsonl so you can inspect
-exactly what every agent saw and produced.
+Prints each step nicely and also appends a JSON line per step to
+runs/trace-*.jsonl, so you can go back and see exactly what every agent saw and
+produced. (LangSmith tracing is also available via env vars in config.)
 """
 from __future__ import annotations
 
@@ -17,7 +16,7 @@ from rich.console import Console
 from .config import RUNS_DIR
 
 # Windows terminals often default to cp1252, which can't encode symbols like ₹.
-# Force UTF-8 on the standard streams so output never crashes on such characters.
+# Force UTF-8 on the standard streams so output doesn't crash on those.
 for _stream in (sys.stdout, sys.stderr):
     try:
         _stream.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
@@ -28,7 +27,7 @@ console = Console()
 
 
 class RunLogger:
-    """Prints readable step logs and persists them as JSON lines."""
+    """Prints readable step logs and saves them as JSON lines."""
 
     def __init__(self, run_id: str, echo: bool = True) -> None:
         self.run_id = run_id
@@ -52,10 +51,9 @@ class RunLogger:
         return f"[{node}] {message}"
 
 
-# --- Global "active" logger ---------------------------------------------------
-# Nodes call log_step(...) instead of holding a logger in the graph state, because
-# the state is serialized by the checkpointer and a logger object is not
-# serialisable. We set one active logger per run.
+# We keep one "active" logger per run instead of putting it in the graph state,
+# because the state gets serialized by the checkpointer and a logger object
+# isn't serialisable.
 _active: RunLogger | None = None
 
 

@@ -1,9 +1,8 @@
-"""Guardrails: deterministic validation and safety checks.
+"""Plain-Python validation and safety checks (no LLM).
 
-These run as plain Python (no LLM), giving us a reliable safety net that does not
-depend on the model behaving. They are used in two places:
-  * intake  -> screen unsafe requests + validate the parsed fields
-  * compliance -> capacity and budget checks that drive routing
+These give us a reliable safety net that doesn't depend on the model behaving.
+Used at intake (screen unsafe requests + validate the parsed fields) and at
+compliance (capacity check).
 """
 from __future__ import annotations
 
@@ -12,8 +11,7 @@ from typing import List
 from .config import settings
 from .schemas import EventRequirements
 
-# Obvious red-flag terms -> refuse outright (defense in depth alongside the LLM's
-# own in_scope judgment). Kept short and illustrative.
+# obvious red-flag terms -> refuse outright, alongside the LLM's own judgment
 _UNSAFE_TERMS = [
     "weapon", "explosive", "bomb", "drugs", "smuggle", "fake id",
     "hack", "launder", "counterfeit", "poison",
@@ -21,7 +19,7 @@ _UNSAFE_TERMS = [
 
 
 def screen_request(text: str) -> str | None:
-    """Return a refusal reason if the raw request is unsafe/out of scope, else None."""
+    """Return a refusal reason if the request is unsafe/out of scope, else None."""
     lowered = text.lower()
     for term in _UNSAFE_TERMS:
         if term in lowered:
@@ -33,10 +31,7 @@ def screen_request(text: str) -> str | None:
 
 
 def validate_requirements(req: EventRequirements) -> List[str]:
-    """Check the parsed requirements for sane, in-bounds values.
-
-    Returns a list of human-readable problems (empty list = all good).
-    """
+    """Return a list of problems with the parsed requirements (empty = all good)."""
     problems: List[str] = []
     if not req.city.strip():
         problems.append("No city was provided for the event.")

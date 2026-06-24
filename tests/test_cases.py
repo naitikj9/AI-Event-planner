@@ -1,21 +1,20 @@
-"""Evaluation harness — 7 scenarios that exercise every path in the system.
+"""Evaluation harness: eight scenarios that exercise every path in the system.
 
 Run it:
     python -m tests.test_cases
 
-Each scenario declares the expected final status. The harness runs the full graph
-(real LLM) for each, then prints a PASS/FAIL table. This is the rubric's
-"Evaluation: at least 5 test cases" plus a demonstration that routing, guardrails
-and human-in-the-loop all behave correctly.
+Each scenario declares the expected final status. The harness runs the full
+graph (real LLM) for each one and prints a PASS/FAIL table.
 
-What each case proves:
-  1. happy_approve   approve_auto/needs_human -> human approves -> BOOKED
-  2. happy_decline   needs_human -> human declines -> DECLINED (HITL both ways)
-  3. small_event     low-cost event -> finalized -> BOOKED
-  4. unsafe          safety guardrail refuses an unsafe request -> REFUSED
-  5. invalid_budget  validation guardrail rejects an impossible budget -> REFUSED
-  6. over_capacity   no venue can hold the guests -> REJECTED
-  7. over_budget     plan far exceeds budget -> REJECTED
+What each case checks:
+  1. happy_approve    needs_human -> human approves -> BOOKED
+  2. happy_decline    needs_human -> human declines -> DECLINED
+  3. small_event      low-cost event -> BOOKED
+  4. unsafe           safety guardrail refuses an unsafe request -> REFUSED
+  5. invalid_budget   validation rejects an impossible budget -> REFUSED
+  6. over_capacity    no venue can hold the guests -> REJECTED
+  7. over_budget      plan far exceeds budget -> REJECTED
+  8. too_many_guests  guest count over the max -> REFUSED
 """
 from __future__ import annotations
 
@@ -37,7 +36,7 @@ def decline(_payload: dict) -> str:
     return "decline"
 
 
-# Each scenario: id, request, decision handler (for HITL), expected status.
+# each scenario: id, request, decision handler (for HITL), expected status
 SCENARIOS = [
     {
         "id": "happy_approve",
@@ -88,7 +87,7 @@ SCENARIOS = [
     {
         "id": "over_capacity",
         # 800 guests passes the input guardrail (<=2000) but no Bangalore venue
-        # is large enough -> the venue agent finds no fit -> compliance rejects.
+        # is large enough, so the venue agent finds no fit and compliance rejects
         "request": (
             "Plan a wedding in Bangalore for 800 guests with a budget of "
             "50 lakh on 2026-12-05."
@@ -99,7 +98,7 @@ SCENARIOS = [
     {
         "id": "over_budget",
         # Delhi's only venue (Heritage Palace) costs far more than this budget,
-        # so the plan blows the budget -> compliance rejects.
+        # so the plan blows the budget and compliance rejects
         "request": (
             "Plan a wedding at a heritage palace in Delhi for 450 guests with a "
             "budget of 4 lakh on 2026-12-10."
@@ -109,7 +108,7 @@ SCENARIOS = [
     },
     {
         "id": "too_many_guests",
-        # 5000 guests trips the MAX_GUESTS input-validation guardrail at intake.
+        # 5000 guests trips the MAX_GUESTS input-validation guardrail at intake
         "request": (
             "Plan a wedding in Bangalore for 5000 guests with a budget of "
             "50 lakh on 2026-12-05."

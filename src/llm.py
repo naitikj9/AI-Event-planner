@@ -1,7 +1,6 @@
-"""LLM and embeddings factory.
+"""Builds the chat model and the embeddings model.
 
-One place to build the chat model and the embeddings model. Written so the
-provider could be swapped later (e.g. to Gemini/Groq) by editing only this file.
+Keeping this in one file means swapping the provider later only touches here.
 """
 from __future__ import annotations
 
@@ -11,17 +10,14 @@ from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
 from .config import settings
 
+_NO_KEY = "OPENAI_API_KEY is not set. Copy .env.example to .env and add your key."
+
 
 @lru_cache(maxsize=None)
 def get_chat_llm(temperature: float = 0.0) -> ChatOpenAI:
-    """Return a chat model. temperature=0 keeps agent decisions deterministic.
-
-    lru_cache means we reuse one client instead of rebuilding it per call.
-    """
+    # temperature 0 keeps the agents' decisions deterministic
     if not settings.OPENAI_API_KEY:
-        raise RuntimeError(
-            "OPENAI_API_KEY is not set. Copy .env.example to .env and add your key."
-        )
+        raise RuntimeError(_NO_KEY)
     return ChatOpenAI(
         model=settings.CHAT_MODEL,
         temperature=temperature,
@@ -33,11 +29,8 @@ def get_chat_llm(temperature: float = 0.0) -> ChatOpenAI:
 
 @lru_cache(maxsize=None)
 def get_embeddings() -> OpenAIEmbeddings:
-    """Return the embeddings model used to power RAG retrieval."""
     if not settings.OPENAI_API_KEY:
-        raise RuntimeError(
-            "OPENAI_API_KEY is not set. Copy .env.example to .env and add your key."
-        )
+        raise RuntimeError(_NO_KEY)
     return OpenAIEmbeddings(
         model=settings.EMBED_MODEL,
         api_key=settings.OPENAI_API_KEY,

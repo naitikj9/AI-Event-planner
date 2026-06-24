@@ -1,14 +1,14 @@
 """Availability check tool (mock external API).
 
-Stands in for a real venue-booking calendar API. It is deterministic (no random
-calls) so demos and tests are repeatable: a small blackout calendar marks some
-venue/date combinations as unavailable, and everything else is open.
+Stands in for a real venue-booking calendar. It's deterministic (no random
+calls) so demos and tests are repeatable: a small blackout list marks some
+venue/date pairs as taken, everything else is open.
 """
 from __future__ import annotations
 
 from langchain_core.tools import tool
 
-# Pretend these venue/date pairs are already booked.
+# pretend these venue/date pairs are already booked
 _BLACKOUTS = {
     ("venue-001", "2026-12-20"),
     ("venue-005", "2026-12-25"),

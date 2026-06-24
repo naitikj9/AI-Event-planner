@@ -1,11 +1,11 @@
-"""Agent 2 — Venue & Vendor research (the RAG agent).
+"""Venue & vendor agent (the RAG one).
 
-Role: ground vendor selection in the real catalog.
-  1. RETRIEVE: semantic search over the embedded vendor catalog (RAG).
-  2. SELECT: an LLM picks the best venue + caterer + decorator + entertainment +
-     photographer from ONLY the retrieved candidates.
-  3. VERIFY: prices/names are overwritten from the catalog (never trust the LLM
-     for numbers), and the chosen venue's date availability is checked via a tool.
+It grounds vendor selection in the real catalog:
+  1. retrieve candidates with semantic search over the embedded catalog
+  2. let an LLM pick the best venue/caterer/decorator/entertainment/photographer
+     from those candidates only
+  3. re-check names/prices against the catalog (never trust the LLM for numbers)
+     and check the chosen venue's date availability with a tool
 """
 from __future__ import annotations
 
@@ -31,7 +31,7 @@ Hard rules:
 
 
 def _candidate_text(c: dict) -> str:
-    """Compact one-line description of a candidate for the prompt."""
+    """One-line description of a candidate for the prompt."""
     cap = f", capacity {c['capacity']}" if c.get("capacity") else ""
     return (
         f"- id={c['id']} | {c['name']} | type={c['type']} | city={c.get('city','?')}"
@@ -41,12 +41,12 @@ def _candidate_text(c: dict) -> str:
 
 
 def _verify(choice: VendorChoice | None) -> VendorChoice | None:
-    """Overwrite name/type/price from the catalog so numbers are always correct."""
+    """Overwrite name/type/price from the catalog so the numbers are correct."""
     if choice is None:
         return None
     record = get_vendor_by_id(choice.id)
     if record is None:
-        return None  # LLM hallucinated an id -> drop it
+        return None  # LLM made up an id -> drop it
     return VendorChoice(
         id=record["id"],
         name=record["name"],
@@ -60,7 +60,7 @@ def _verify(choice: VendorChoice | None) -> VendorChoice | None:
 def research_node(state: PlannerState) -> dict:
     req: EventRequirements = state["requirements"]
 
-    # 1) RETRIEVE (RAG) — build a natural-language query from the requirements.
+    # 1) retrieve candidates (RAG) using a query built from the requirements
     query = (
         f"{req.event_type} event in {req.city} for {req.guest_count} guests, "
         f"{req.setting_preference} setting, budget around ₹{req.budget_inr}, "
@@ -70,7 +70,7 @@ def research_node(state: PlannerState) -> dict:
     ctx = [f"{c['name']} ({c['type']}, {c.get('city','?')})" for c in candidates]
     log_step("venue", f"RAG retrieved {len(candidates)} candidate vendors.", candidates)
 
-    # 2) SELECT — LLM chooses from candidates only, returning structured JSON.
+    # 2) let the LLM choose from the candidates, returning structured JSON
     candidate_block = "\n".join(_candidate_text(c) for c in candidates)
     human = (
         f"REQUIREMENTS: {req.model_dump()}\n\n"
@@ -82,14 +82,14 @@ def research_node(state: PlannerState) -> dict:
         [SystemMessage(content=_SYSTEM), HumanMessage(content=human)]
     )
 
-    # 3) VERIFY prices/names against the catalog.
+    # 3) verify prices/names against the catalog
     shortlist.venue = _verify(shortlist.venue)
     shortlist.caterer = _verify(shortlist.caterer)
     shortlist.decorator = _verify(shortlist.decorator)
     shortlist.entertainment = _verify(shortlist.entertainment)
     shortlist.photographer = _verify(shortlist.photographer)
 
-    # Tool call: check the venue's availability on the requested date.
+    # check the venue is free on the requested date
     if shortlist.venue and req.event_date:
         avail = check_availability.invoke(
             {"vendor_id": shortlist.venue.id, "event_date": req.event_date}

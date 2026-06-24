@@ -1,11 +1,12 @@
 """RAG retrieval tool.
 
-We embed every vendor's description into a vector store, then let the Venue agent
-search it in natural language ("large outdoor wedding venue in Bangalore"). This
-grounds the agent's choices in the real catalog instead of hallucinating venues.
+We embed every vendor's description into a vector store, then let the venue
+agent search it in natural language ("large outdoor wedding venue in
+Bangalore"). This keeps the agent's choices grounded in the real catalog
+instead of made-up venues.
 
-We use an in-memory vector store so there is nothing extra to install or run —
-ideal for a demo, and a drop-in for FAISS/Chroma later.
+The store is in-memory so there's nothing extra to install or run. Swapping in
+FAISS/Chroma later would only touch this file.
 """
 from __future__ import annotations
 
@@ -29,12 +30,12 @@ def load_catalog() -> Dict[str, dict]:
 
 
 def get_vendor_by_id(vendor_id: str) -> dict | None:
-    """Exact lookup so pricing/capacity come from data, never from the LLM."""
+    """Exact lookup so pricing/capacity come from the data, not the LLM."""
     return load_catalog().get(vendor_id)
 
 
 def _to_document(item: dict) -> Document:
-    """Turn a catalog entry into a searchable document with rich text + metadata."""
+    """Turn a catalog entry into a searchable document with text + metadata."""
     text = (
         f"{item['name']} ({item['type']}) in {item.get('city', 'N/A')}. "
         f"{item['description']} "
@@ -45,7 +46,7 @@ def _to_document(item: dict) -> Document:
 
 @lru_cache(maxsize=1)
 def _vector_store() -> InMemoryVectorStore:
-    """Build (once) the embedded vector index over the whole catalog."""
+    """Build the embedded index over the whole catalog (once)."""
     catalog = load_catalog()
     docs = [_to_document(item) for item in catalog.values()]
     store = InMemoryVectorStore(get_embeddings())
@@ -57,8 +58,8 @@ def _vector_store() -> InMemoryVectorStore:
 def retrieve_vendors(query: str, k: int = 6) -> List[dict]:
     """Search the vendor catalog for the k best semantic matches to `query`.
 
-    Returns a list of vendor records (with id, name, type, city, capacity, price).
-    Use this to ground venue/vendor selection in the real catalog.
+    Returns a list of vendor records (id, name, type, city, capacity, price).
+    Used to ground venue/vendor selection in the real catalog.
     """
     results = _vector_store().similarity_search(query, k=k)
     return [doc.metadata for doc in results]

@@ -1,6 +1,6 @@
-"""Multi-Agent Event Planner — a LangGraph capstone project.
+"""Multi-agent event planner built with LangGraph.
 
-This package contains a team of AI agents that together turn a plain-language
-event request (e.g. "plan a 150-guest wedding in Bangalore for 8 lakh") into a
-costed, compliance-checked event plan that a human approves before booking.
+Takes a plain-language request like "plan a 150-guest wedding in Bangalore for
+8 lakh" and turns it into a costed, compliance-checked plan that a human
+approves before anything gets booked.
 """

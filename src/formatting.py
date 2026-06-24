@@ -1,7 +1,7 @@
-"""Helpers that render the plan as readable text.
+"""Renders the plan as readable text.
 
-Used by the finalize node (final message) and the human-approval prompt, so the
-person approving sees exactly what will be booked.
+Used by the finalize node (the final message) and the human-approval prompt, so
+the person approving sees exactly what will be booked.
 """
 from __future__ import annotations
 
@@ -28,7 +28,7 @@ def format_plan(
 ) -> str:
     """Full human-readable plan."""
     lines = [
-        f"EVENT PLAN — {req.event_type.title()} in {req.city}",
+        f"EVENT PLAN - {req.event_type.title()} in {req.city}",
         f"Date: {req.event_date or 'TBD'} | Guests: {req.guest_count} "
         f"| Budget: ₹{req.budget_inr:,}",
         "",

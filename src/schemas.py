@@ -1,8 +1,8 @@
-"""Pydantic schemas = the typed contracts agents use to hand off work.
+"""Pydantic models the agents use to hand work off to one another.
 
-Each agent returns one of these models (never loose text), so every handoff is
-validated JSON. If an agent's output doesn't fit the schema, LangChain forces a
-retry — this is how we get reliable, structured handoffs.
+Each agent returns one of these instead of loose text, so every handoff is
+validated JSON. If an agent's output doesn't match the schema, LangChain makes
+it retry.
 """
 from __future__ import annotations
 
@@ -10,9 +10,8 @@ from typing import List, Literal, Optional
 
 from pydantic import BaseModel, Field
 
-# ---------------------------------------------------------------------------
-# 1. Intake agent output
-# ---------------------------------------------------------------------------
+
+# --- Intake agent output ---
 
 EventType = Literal[
     "wedding", "corporate", "birthday", "anniversary", "conference", "party", "other"
@@ -20,7 +19,7 @@ EventType = Literal[
 
 
 class EventRequirements(BaseModel):
-    """Structured form of the user's plain-language request."""
+    """Structured version of the user's plain-language request."""
 
     in_scope: bool = Field(
         description="True only if this is a genuine event-planning request. "
@@ -42,14 +41,10 @@ class EventRequirements(BaseModel):
     special_requests: Optional[str] = Field(default=None)
 
 
-# ---------------------------------------------------------------------------
-# 2. Venue & Vendor agent output
-# ---------------------------------------------------------------------------
+# --- Venue & vendor agent output ---
 
 
 class VendorChoice(BaseModel):
-    """A single chosen vendor (venue, caterer, decorator, etc.)."""
-
     id: str
     name: str
     type: Literal["venue", "caterer", "decorator", "entertainment", "photographer"]
@@ -59,8 +54,6 @@ class VendorChoice(BaseModel):
 
 
 class VendorShortlist(BaseModel):
-    """The set of vendors selected for the event."""
-
     venue: Optional[VendorChoice] = None
     caterer: Optional[VendorChoice] = None
     decorator: Optional[VendorChoice] = None
@@ -69,9 +62,7 @@ class VendorShortlist(BaseModel):
     notes: str = Field(default="", description="Any caveats, e.g. no exact match found.")
 
 
-# ---------------------------------------------------------------------------
-# 3. Planner agent output
-# ---------------------------------------------------------------------------
+# --- Planner agent output ---
 
 
 class ScheduleItem(BaseModel):
@@ -85,24 +76,18 @@ class BudgetLine(BaseModel):
 
 
 class EventPlan(BaseModel):
-    """The full plan: a timeline plus a costed budget breakdown."""
-
     timeline: List[ScheduleItem] = Field(default_factory=list)
     budget_breakdown: List[BudgetLine] = Field(default_factory=list)
     total_cost_inr: int = 0
     summary: str = Field(default="", description="One-paragraph plain-language summary.")
 
 
-# ---------------------------------------------------------------------------
-# 4. Compliance agent output
-# ---------------------------------------------------------------------------
+# --- Compliance agent output ---
 
 Decision = Literal["approve_auto", "needs_human", "reject"]
 
 
 class ComplianceResult(BaseModel):
-    """Safety/policy verdict that drives the routing decision."""
-
     decision: Decision = Field(
         description="approve_auto = safe to finalize automatically; "
         "needs_human = a person must approve before booking; "

@@ -1,8 +1,8 @@
 """Budget calculator tool.
 
-Deterministic math — we never let the LLM "guess" totals. Prices come from the
-catalog (per the chosen vendor ids); the per-plate catering cost is multiplied by
-the guest count. The Planner agent calls this to get an exact, auditable total.
+Deterministic math, so we never let the LLM guess totals. Prices come from the
+catalog (by the chosen vendor ids), and per-plate catering is multiplied by the
+guest count. The planner agent calls this to get an exact, auditable total.
 """
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ from .retrieval import get_vendor_by_id
 
 
 def _line_cost(vendor_id: str | None, guest_count: int) -> int:
-    """Compute a single vendor's contribution to the total cost."""
+    """Work out a single vendor's contribution to the total."""
     if not vendor_id:
         return 0
     vendor = get_vendor_by_id(vendor_id)
@@ -23,7 +23,7 @@ def _line_cost(vendor_id: str | None, guest_count: int) -> int:
     price = int(vendor.get("price_inr", 0))
     if vendor.get("price_unit") == "per_plate":
         return price * max(guest_count, 0)
-    # per_day and flat are charged once.
+    # per_day and flat are charged once
     return price
 
 

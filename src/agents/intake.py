@@ -1,8 +1,8 @@
-"""Agent 1 — Intake.
+"""Intake agent.
 
-Role: turn the user's free-text request into a validated EventRequirements object.
-It also performs the first guardrail: a deterministic keyword screen for unsafe
-requests, plus an LLM judgment of whether the request is in scope at all.
+Turns the user's free-text request into a validated EventRequirements object.
+It also does the first guardrail: a keyword screen for unsafe requests, plus an
+LLM judgment of whether the request is in scope at all.
 """
 from __future__ import annotations
 
@@ -33,10 +33,9 @@ Rules:
 
 
 def intake_node(state: PlannerState) -> dict:
-    """Parse + screen the request. Returns a partial state update."""
     request = state["user_request"]
 
-    # Deterministic safety screen first (does not depend on the model).
+    # deterministic safety screen first, before spending an LLM call
     unsafe = screen_request(request)
     if unsafe:
         req = EventRequirements(in_scope=False, refusal_reason=unsafe)

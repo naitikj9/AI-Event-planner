@@ -1,9 +1,8 @@
 """The run loop that drives the compiled graph, including the HITL pause/resume.
 
-Shared by the interactive CLI (app.py) and the evaluation harness (tests), so the
-exact same code path is exercised in demos and tests. `decision_fn` lets callers
-plug in how the human approval is answered (real keyboard input, or a scripted
-answer in tests).
+Shared by the CLI (app.py) and the test harness, so the same code path runs in
+demos and tests. `decision_fn` lets the caller decide how the human approval is
+answered (real keyboard input, or a scripted answer in tests).
 """
 from __future__ import annotations
 
@@ -19,12 +18,12 @@ from .logging_utils import RunLogger, console, set_active_logger
 
 def _interactive_decision(payload: dict) -> str:
     """Default approval handler: show the request and read a keyboard answer."""
-    console.print("\n[bold yellow]⏸  HUMAN APPROVAL REQUIRED[/bold yellow]")
+    console.print("\n[bold yellow]HUMAN APPROVAL REQUIRED[/bold yellow]")
     console.print(payload["summary"])
     console.print(f"[dim]{payload['action_required']}[/dim]")
     raw = input("Your decision (approve/decline): ")
-    # Extract the first run of ASCII letters so stray BOM/encoding noise from
-    # piped input (e.g. a UTF-8 BOM decoded as "ï») can't corrupt the answer.
+    # take the first run of ASCII letters so a stray BOM in piped input
+    # (e.g. a UTF-8 BOM decoded as "ï») can't corrupt the answer
     match = re.search(r"[a-z]+", raw.lower())
     return match.group(0) if match else "decline"
 
@@ -39,8 +38,8 @@ def run_planner(
 ) -> dict:
     """Run one event-planning request end to end and return the final state.
 
-    Handles the interrupt loop: if the graph pauses for human approval, we ask
-    `decision_fn` (interactive by default) and resume until the graph finishes.
+    Handles the interrupt loop: if the graph pauses for human approval we ask
+    `decision_fn` (interactive by default) and resume until it finishes.
     `quiet=True` silences per-step console logs (used by the batch evaluator).
     """
     apply_langsmith_env()
@@ -55,7 +54,7 @@ def run_planner(
 
     result = graph.invoke({"user_request": request, "log": []}, config)
 
-    # The graph returns with "__interrupt__" set whenever it paused for a human.
+    # the graph comes back with "__interrupt__" set whenever it paused for a human
     while "__interrupt__" in result:
         payload = result["__interrupt__"][0].value
         answer = decision_fn(payload)

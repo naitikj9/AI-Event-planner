@@ -19,7 +19,7 @@ SAMPLE = (
 
 
 def main() -> None:
-    # Request from command-line args, else prompt, else fall back to the sample.
+    # take the request from the command line, else prompt, else use the sample
     if len(sys.argv) > 1:
         request = " ".join(sys.argv[1:])
     else:

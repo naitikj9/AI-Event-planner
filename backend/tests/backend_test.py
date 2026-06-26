@@ -163,6 +163,36 @@ class TestPersistence:
         assert r.status_code == 404
 
 
+# ---------------- New: pending_only filter ----------------
+class TestPendingOnly:
+    def test_pending_only_filter(self, session):
+        # Create a new pending HITL plan
+        body = {"request": "Plan a wedding in Bangalore for 130 guests with a budget of around 600000, outdoor setting."}
+        r = session.post(f"{API}/plans", json=body, timeout=180)
+        assert r.status_code == 200
+        data = r.json()
+        assert data["status"] == "awaiting_approval"
+        pending_pid = data["plan_id"]
+        _state["pending_pid"] = pending_pid
+
+        # pending_only=true -> only awaiting_approval plans
+        r2 = session.get(f"{API}/plans?pending_only=true&limit=100", timeout=15)
+        assert r2.status_code == 200
+        plans = r2.json()["plans"]
+        assert len(plans) >= 1
+        for p in plans:
+            assert p["status"] == "awaiting_approval", f"non-pending leaked: {p}"
+        ids = {p["plan_id"] for p in plans}
+        assert pending_pid in ids
+
+        # pending_only=false -> includes booked + others
+        r3 = session.get(f"{API}/plans?limit=100", timeout=15)
+        assert r3.status_code == 200
+        all_statuses = {p["status"] for p in r3.json()["plans"]}
+        # The full list should include at least one non-pending status
+        assert any(s != "awaiting_approval" for s in all_statuses), all_statuses
+
+
 # ---------------- Input validation ----------------
 class TestValidation:
     def test_decision_invalid(self, session):

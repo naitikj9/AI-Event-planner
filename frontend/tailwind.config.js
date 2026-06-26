@@ -3,6 +3,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // ── admin / "obsidian" command-center palette
         bg: {
           app: "#050505",
           surface: "#111111",
@@ -21,10 +22,38 @@ module.exports = {
           secondary: "#A1A1AA",
           muted: "#52525B",
         },
+        // ── consumer "vayu" warm-ivory palette
+        ivory: {
+          50: "#FBF8F2",
+          100: "#F5EFE3",
+          200: "#EDE3CC",
+        },
+        emerald: {
+          900: "#0B3D2A",
+          800: "#0F5132",
+          700: "#1A6A45",
+          600: "#2A8C5E",
+          50: "#E9F2EC",
+        },
+        gold: {
+          600: "#A8842F",
+          500: "#B8924A",
+          400: "#C8A864",
+          200: "#E7D6A6",
+        },
+        rose: {
+          600: "#B83A4B",
+        },
+        slate: {
+          ink: "#0F0F0F",
+          mid: "#4A4A4A",
+          soft: "#8A8A8A",
+        },
       },
       fontFamily: {
         sans: ['"IBM Plex Sans"', "system-ui", "sans-serif"],
         mono: ['"JetBrains Mono"', "ui-monospace", "monospace"],
+        serif: ['"Cormorant Garamond"', "Georgia", "serif"],
       },
       borderRadius: {
         sm: "2px",

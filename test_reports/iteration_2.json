@@ -1,0 +1,42 @@
+{
+  "summary": "Iteration 2: Full backend (pytest 16/16 PASS incl. new pending_only filter) + frontend Playwright e2e of consumer site (/, /plan, /plan/:id) and admin (/admin). Verified: landing hero+services+CTAs, 4-step wizard, plan submission ⇒ awaiting_approval banner ⇒ admin pending queue ⇒ HITL approve ⇒ consumer banner auto-updates to 'Confirmed' (BOOKED); decline ⇒ DECLINED + consumer failure block; admin refuse path via prompt-chip-5 ⇒ REFUSED; back-to-consumer link works.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/plans/{id}/decision", "issue": "Still does not 409 when plan is no longer awaiting_approval (idempotent no-op via LangGraph) — pre-existing from iteration 1, not in this iteration's scope."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "PlanView headline", "issues": ["Tailwind `capitalize` class title-cases every word so headline reads 'A Wedding In Bangalore' (not 'A wedding in Bangalore' as specified in the review request). Cosmetic — switch to `first-letter:uppercase` on a normal-case heading or capitalize only event_type/city values explicitly if exact-case is required."]},
+      {"screen": "PlanView budget summary", "issues": ["For 130-guest wedding @ ₹6L bucket the AI plan totals ~₹6.6L (110% of budget) and the bar fills red. Functional, but consider showing an explicit 'over budget by ₹61,500' chip for clarity."]},
+      {"screen": "Admin History (pre-existing)", "issues": ["React validateDOMNesting warning persists — nested <button> inside history row. Cosmetic/a11y, carried over from iteration 1."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "(Optional) Fix headline casing in /app/frontend/src/pages/PlanView.js Headline() — replace `capitalize` on the <h1> with explicit capitalisation of the first letter only, or apply text-transform only to `{r.event_type}` and `{r.city}` substrings.",
+    "(Optional carryover) Refactor nested <button> in admin History component to eliminate React DOM-nesting warning.",
+    "(Optional carryover) Add 409 short-circuit on /api/plans/{id}/decision when plan is not in awaiting_approval state."
+  ],
+  "critical_code_review_comments": [
+    "server.py list_plans: pending_only filter is correctly indexed on 'state.status'; works as expected. Consider adding a Mongo index on state.status if traffic grows.",
+    "PlanView polls every 5s while awaiting_approval but never stops on unmount edge-cases if status updates exactly at unmount — handled fine via cleanup, looks correct.",
+    "Wizard.buildPrompt uses bucket.value (130 guests, ₹6L for the 8L bucket) — but the bucket id label says '₹3–8 lakh'. The prompt sent is realistic; just note the bucket label vs value mismatch can surprise users.",
+    "Wizard sends prompt to /api/plans synchronously and waits up to LLM latency (~30–45s) with only a 'Planning your event…' spinner. No client-side timeout/cancel — consider AbortController + friendlier error if backend stalls."
+  ],
+  "updated_files": [
+    "/app/backend/tests/backend_test.py (added TestPendingOnly)"
+  ],
+  "success_rate": {"backend": "100% (16/16)", "frontend": "100% (all consumer + admin flows pass)"},
+  "test_credentials": "n/a (no auth)",
+  "seed_data_creation": "Created 3 new plans via wizard (1 booked, 1 declined, 1 refused) + reused plans from iteration 1. Pending plans created during pending_only test remain awaiting_approval in DB (visible in admin pending queue).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend tests at /app/backend/tests/backend_test.py — run with `pytest backend/tests/backend_test.py -v`. Order matters (TestPlanFlow.test_create_plan_hitl seeds _state['hitl_plan_id'] used by approve test); LangGraph in-memory checkpointer means backend must not restart between create and decision calls. UI testids documented: landing-root, hero-title, hero-plan-cta, services-section, service-{0..3}, cta-plan-button, consumer-nav, nav-plan-cta, wizard-root/back/next/submit, event-*, guests-*, city-*, event-date, budget-*, setting-*, prefs-notes, plan-content, status-banner, plan-headline, vendor-list, vendor-{0..4}, plan-timeline, budget-summary, next-steps, share-button, contact-button, plan-failure, admin-root, admin-nav, back-to-consumer, pending-queue, pending-row-N, hitl-modal, hitl-approve-button, hitl-decline-button, status-pill, prompt-chip-{0..5}, submit-plan-button, failure-card."
+}

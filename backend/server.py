@@ -278,8 +278,9 @@ async def get_plan(plan_id: str) -> dict:
 
 
 @app.get("/api/plans")
-async def list_plans(limit: int = 50) -> dict:
-    cursor = plans_collection.find({}, {"_id": 0}).sort("updated_at", -1).limit(limit)
+async def list_plans(limit: int = 50, pending_only: bool = False) -> dict:
+    query = {"state.status": "awaiting_approval"} if pending_only else {}
+    cursor = plans_collection.find(query, {"_id": 0}).sort("updated_at", -1).limit(limit)
     items = await cursor.to_list(length=limit)
     summary = [
         {

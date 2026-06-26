@@ -21,7 +21,7 @@ import {
 import ConsumerNav from "../components/ConsumerNav";
 import ConsumerFooter from "../components/ConsumerFooter";
 import { api } from "../lib/api";
-import { cn, inr } from "../lib/utils";
+import { cn, inr, unitLabel, vendorHighlights } from "../lib/utils";
 
 const CAT_ICON = {
   venue: MapPin,
@@ -42,6 +42,21 @@ export default function PlanView() {
   const [state, setState] = useState(location.state?.initial || null);
   const [loading, setLoading] = useState(!state);
   const [error, setError] = useState(null);
+  const [catalog, setCatalog] = useState({}); // id → full vendor entry
+
+  // load full vendor catalog once so we can show category-specific highlights
+  useEffect(() => {
+    api
+      .vendors()
+      .then((d) => {
+        const map = {};
+        (d.vendors || []).forEach((v) => {
+          map[v.id] = v;
+        });
+        setCatalog(map);
+      })
+      .catch(() => {});
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -89,7 +104,7 @@ export default function PlanView() {
               {error}
             </div>
           )}
-          {state && <PlanContent state={state} planId={planId} />}
+          {state && <PlanContent state={state} planId={planId} catalog={catalog} />}
         </div>
       </div>
       <ConsumerFooter />
@@ -106,7 +121,7 @@ function PendingSpinner() {
   );
 }
 
-function PlanContent({ state, planId }) {
+function PlanContent({ state, planId, catalog }) {
   const isFail =
     state.status === "refused" ||
     state.status === "rejected" ||
@@ -125,7 +140,11 @@ function PlanContent({ state, planId }) {
           <Headline state={state} />
           <div className="mt-10 grid grid-cols-1 lg:grid-cols-12 gap-6">
             <div className="lg:col-span-8 space-y-6">
-              <VendorList shortlist={state.shortlist} setting={state.requirements?.setting_preference} />
+              <VendorList
+                shortlist={state.shortlist}
+                setting={state.requirements?.setting_preference}
+                catalog={catalog}
+              />
               <Timeline items={state.plan.timeline || []} />
             </div>
             <div className="lg:col-span-4 space-y-6">
@@ -234,7 +253,7 @@ function Headline({ state }) {
   );
 }
 
-function VendorList({ shortlist, setting }) {
+function VendorList({ shortlist, setting, catalog }) {
   const cats = ["venue", "caterer", "decorator", "entertainment", "photographer"];
   return (
     <div className="bg-ivory-50 border border-ivory-200 rounded-sm" data-testid="vendor-list">
@@ -258,6 +277,7 @@ function VendorList({ shortlist, setting }) {
               <VendorRow
                 cat={cat}
                 v={v}
+                entry={catalog?.[v.id]}
                 image={
                   cat === "venue"
                     ? setting === "outdoor"
@@ -275,9 +295,10 @@ function VendorList({ shortlist, setting }) {
   );
 }
 
-function VendorRow({ cat, v, image, idx }) {
+function VendorRow({ cat, v, entry, image, idx }) {
   const Icon = CAT_ICON[cat] || MapPin;
-  const unit = v.price_unit === "per_plate" ? "per plate" : v.price_unit === "per_day" ? "per day" : "flat";
+  const unit = unitLabel(v.price_unit, cat);
+  const highlights = vendorHighlights(cat, entry);
   return (
     <div data-testid={`vendor-${idx}`} className="grid grid-cols-12 gap-4 p-5 items-start">
       <div className="col-span-12 md:col-span-3">
@@ -297,6 +318,14 @@ function VendorRow({ cat, v, image, idx }) {
           {cat}
         </div>
         <div className="font-serif text-2xl tracking-tight mt-1">{v.name}</div>
+        {highlights && (
+          <div
+            data-testid={`vendor-${idx}-highlights`}
+            className="mt-1.5 text-[12.5px] text-emerald-800 font-medium tracking-tight"
+          >
+            {highlights}
+          </div>
+        )}
         <p className="mt-2 text-[13.5px] text-slate-mid leading-relaxed">{v.reason}</p>
       </div>
       <div className="col-span-12 md:col-span-3 md:text-right">

@@ -1,0 +1,162 @@
+{
+  "theme_and_archetype": {
+    "domain": "AI Orchestration / Event Planner Tool",
+    "theme": "Dark",
+    "archetype": "Archetype 4 (Swiss & High-Contrast) optimized as 'The Obsidian God' Command Center",
+    "rationale": "The app is a technical AI product showcase, not a typical consumer wedding site. It requires a 'God Mode' / Mission Control aesthetic to emphasize the multi-agent architecture. Colors must remain strict, avoiding any generic AI purple or teal."
+  },
+  "typography": {
+    "banned_fonts": [
+      "Inter",
+      "Space Grotesk",
+      "Roboto",
+      "Open Sans"
+    ],
+    "headings": {
+      "family": "IBM Plex Sans",
+      "weight": "font-bold to font-black",
+      "tracking": "tracking-tight",
+      "scale_max": "text-5xl"
+    },
+    "body": {
+      "family": "IBM Plex Sans",
+      "weight": "font-normal",
+      "tracking": "tracking-normal"
+    },
+    "mono_data": {
+      "family": "JetBrains Mono",
+      "weight": "font-medium",
+      "usage": "Logs, trace viewer, node IDs, financial metrics, and timeline times."
+    }
+  },
+  "color_palette": {
+    "background": {
+      "app": "#050505",
+      "surface": "#111111",
+      "surface_hover": "#1A1A1A",
+      "glass": "bg-black/80 backdrop-blur-xl"
+    },
+    "borders": {
+      "default": "rgba(255, 255, 255, 0.1)",
+      "focus": "#F97316"
+    },
+    "primary": {
+      "base": "#F97316",
+      "hover": "#EA580C",
+      "text_on_primary": "#FFFFFF",
+      "description": "Signal Orange - used for active nodes, primary execution buttons, and the main workflow path."
+    },
+    "status": {
+      "running": "#00F0FF",
+      "waiting_human": "#F97316",
+      "success": "#22C55E",
+      "error": "#EF4444",
+      "idle": "#52525B"
+    },
+    "text": {
+      "primary": "#FAFAFA",
+      "secondary": "#A1A1AA",
+      "muted": "#52525B"
+    },
+    "forbidden_colors": [
+      "#7351B7",
+      "#9D4CDD",
+      "#1B93A4",
+      "Purple-blue gradients"
+    ]
+  },
+  "spacing_and_layout": {
+    "strategy": "Grid Borders (Technical Look) & The Panopticon Grid",
+    "dashboard_grid": "Dense bento grid. grid-cols-1 md:grid-cols-4 lg:grid-cols-12 with tight gaps (gap-4).",
+    "container_padding": "Generous on marketing/hero (py-24), tight and maximized on dashboard (p-4 to p-6).",
+    "borders": "Expose the skeleton. Use border-collapse style layouts for vendor lists and budget breakdowns. 1px solid borders.",
+    "alignment": "Optical alignment. Left-align dense data, logs, and forms."
+  },
+  "component_rules": {
+    "cards": "Do not use generic soft shadows. Use flat surfaces (bg-[#111111]) with sharp 1px borders. Max border-radius: rounded-none or rounded-sm (2px).",
+    "forms": "Use Shadcn customized components. Input/Textarea must have dark background, 1px border, and focus-visible:ring-primary. No native inputs.",
+    "buttons": "Square or 2px radius. High contrast. Primary uses Signal Orange. Secondary uses transparent with 1px border.",
+    "stepper_graph": "Visual Node Graph. Nodes must have status rings (Cyan=Running, Amber=Waiting, Green=Done). Connectors must be animated.",
+    "log_terminal": "Must have a 'matrix' feel. Darkest background (#000), font-mono, text-xs, text-secondary with Cyan/Orange highlights for active agent names.",
+    "hitl_modal": "Human-In-The-Loop requires a massive disruption. Use heavy glassmorphism (bg-black/80 backdrop-blur-2xl) to blank out the background, drawing absolute focus to the Approve/Decline actions."
+  },
+  "motion_and_interactions": {
+    "philosophy": "Crisp, intentional, technical.",
+    "log_streaming": "Typewriter effect for logs, auto-scrolling terminal window.",
+    "agent_nodes": "Pulsing box-shadow or border when an agent is 'Running' (Cyan glow).",
+    "data_reveals": "Staggered fade-in (opacity 0 to 1, y: 10 to 0) for vendor cards and timeline events once Compliance agent finishes.",
+    "hover_states": "Every interactive element must explicitly define hover text and bg colors."
+  },
+  "media_assets": {
+    "hero_abstract": {
+      "url": "https://images.pexels.com/photos/4985154/pexels-photo-4985154.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "description": "Abstract node network graph with red spheres and dark lines. Use as a subtle background element in the hero section or 'About the Architecture' section.",
+      "placement": "Hero background or Architecture Mermaid diagram background"
+    },
+    "vendor_venues": [
+      {
+        "url": "https://images.unsplash.com/photo-1772127822531-6a279b5aa968?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMjh8MHwxfHNlYXJjaHwzfHxpbmRpYW4lMjB3ZWRkaW5nJTIwb3V0ZG9vciUyMHZlbnVlfGVufDB8fHx8MTc4MjQ5NDgwN3ww&ixlib=rb-4.1.0&q=85",
+        "description": "Outdoor Indian wedding ceremony setup.",
+        "placement": "Vendor Shortlist Card - Venue Option 1"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1772127822525-7eda37383b9f?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMjh8MHwxfHNlYXJjaHwxfHxpbmRpYW4lMjB3ZWRkaW5nJTIwb3V0ZG9vciUyMHZlbnVlfGVufDB8fHx8MTc4MjQ5NDgwN3ww&ixlib=rb-4.1.0&q=85",
+        "description": "Elegant outdoor Indian wedding reception.",
+        "placement": "Vendor Shortlist Card - Venue Option 2"
+      }
+    ]
+  },
+  "accessibility_and_testing": {
+    "contrast": "Ensure all text against dark background passes APCA minimum ratios. Use text-shadow if layered over the abstract image.",
+    "testing_attributes": "CRITICAL: Every button, input, tab, and specific data card MUST have a data-testid attribute in kebab-case (e.g., 'submit-plan-button', 'venue-card-1', 'approve-hitl-button')."
+  },
+  "page_sections": [
+    {
+      "id": "hero_and_form",
+      "layout": "Grid split: Left (Typography + Request Form), Right (Abstract Graphic + Quick Prompts). Form includes a large textarea and slider/input for budget in INR (₹).",
+      "components": [
+        "Heading",
+        "Textarea",
+        "BudgetInput",
+        "PromptChips",
+        "Button"
+      ]
+    },
+    {
+      "id": "orchestration_pipeline",
+      "layout": "Full width spanning container. 4 horizontal nodes connected by SVG lines. Below it, a terminal window (bg-black) for streaming logs.",
+      "components": [
+        "NodeGraph",
+        "AnimatedEdges",
+        "TerminalLog"
+      ]
+    },
+    {
+      "id": "results_bento_grid",
+      "layout": "Bento Grid Mode B. col-span-12 md:col-span-8 for main Vendor list, md:col-span-4 for Timeline and Budget.",
+      "components": [
+        "VendorCard",
+        "BudgetBar",
+        "Timeline",
+        "ComplianceCard"
+      ]
+    },
+    {
+      "id": "observability_sidebar",
+      "layout": "Fixed right sidebar (or toggleable panel) showing Run History and JSONL Trace viewer.",
+      "components": [
+        "HistoryList",
+        "TraceViewer"
+      ]
+    }
+  ],
+  "instructions_to_main_agent": [
+    "Use standard Tailwind CSS classes. Customize shadcn components to remove generic border-radius and shadows. Do not use TypeScript (.tsx), rely strictly on React JS (.js or .jsx).",
+    "Ensure `lucide-react` icons are used to reinforce the technical/terminal aesthetic (e.g., Terminal, GitMerge, CheckCircle).",
+    "For the pipeline graph, use a simple custom Flexbox + SVG lines layout or framer-motion. Ensure it clearly visualizes 4 nodes: [Intake] -> [Vendor RAG] -> [Planner] -> [Compliance].",
+    "Log streaming is critical: make it look like a real backend console updating in real-time.",
+    "Never use placeholder image domains. Only use the provided Unsplash/Pexels URLs in this JSON.",
+    "Apply data-testid to everything interactive.",
+    "Remember the currency is Indian Rupees (₹) and the context is Indian events. Ensure formatters display values like ₹8,000,000 correctly."
+  ]
+}

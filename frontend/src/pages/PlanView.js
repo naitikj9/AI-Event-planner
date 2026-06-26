@@ -217,8 +217,8 @@ function Headline({ state }) {
       <div className="font-mono text-[11px] tracking-[0.25em] uppercase text-gold-600 mb-2">
         your plan
       </div>
-      <h1 className="font-serif text-4xl md:text-5xl tracking-tight leading-tight capitalize">
-        A {r.event_type || "celebration"} in{" "}
+      <h1 className="font-serif text-4xl md:text-5xl tracking-tight leading-tight">
+        A <span className="capitalize">{r.event_type || "celebration"}</span> in{" "}
         <span className="italic text-emerald-800">{r.city || "—"}</span>
       </h1>
       <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-[13px] text-slate-mid">

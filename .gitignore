@@ -24,3 +24,9 @@ runs/
 docs/INDIVIDUAL_CONTRIBUTIONS.md
 docs/INDIVIDUAL_CONTRIBUTIONS.docx
 docs/INDIVIDUAL_CONTRIBUTION_TEMPLATE.md
+.env.*
+*.env
+credentials.json
+*.pem
+*.key
+.credentials

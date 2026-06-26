@@ -75,12 +75,19 @@ export default function History({ refreshKey, onPick }) {
                 secondary: "text-ink-secondary",
               }[meta.tone];
               return (
-                <button
+                <div
                   key={it.plan_id}
-                  type="button"
+                  role="button"
+                  tabIndex={0}
                   data-testid={`history-row-${idx}`}
                   onClick={() => onPick(it.plan_id)}
-                  className="w-full grid grid-cols-12 gap-3 px-4 py-3 border-b hairline last:border-b-0 hover:bg-bg-surfaceHover transition-colors text-left items-center"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      onPick(it.plan_id);
+                    }
+                  }}
+                  className="w-full grid grid-cols-12 gap-3 px-4 py-3 border-b hairline last:border-b-0 hover:bg-bg-surfaceHover transition-colors text-left items-center cursor-pointer focus:outline-none focus:bg-bg-surfaceHover"
                 >
                   <div className="col-span-1 font-mono text-[11px] text-ink-muted">
                     {String(idx + 1).padStart(2, "0")}
@@ -113,7 +120,7 @@ export default function History({ refreshKey, onPick }) {
                       <Trash2 size={14} />
                     </button>
                   </div>
-                </button>
+                </div>
               );
             })}
           </div>

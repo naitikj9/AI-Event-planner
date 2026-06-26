@@ -1,0 +1,39 @@
+{
+  "summary": "Exhaustive backend (pytest, 15/15 pass) and frontend (Playwright) testing of the OBSIDIAN AI Event Planner. All endpoints, HITL flow (create → approve → BOOKED, decline → DECLINED), refuse, reject, persistence, and validation paths pass. UI hero, pipeline, terminal logs, HITL modal, vendor grid, history, and out-of-scope failure card all verified.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "History section", "issues": ["React validateDOMNesting warning: a <button> appears nested inside another <button> inside the History component. Functionally works (history-row-0 click reloads plan), but should be refactored to remove the nested button (e.g., make outer element a div with role=button, or move the inner action button outside the row)."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "Fix nested <button> in History component to remove React validateDOMNesting console warning (cosmetic / a11y)."
+  ],
+  "critical_code_review_comments": [
+    "server.py uses a module-level in-memory checkpointer + GRAPH instance (build_graph()) — single-process only. HITL resume across restarts/replicas will lose paused state. Documented as expected, but consider a persistent checkpointer (Mongo/SQLite) for production.",
+    "_run_logs dict grows unboundedly per process for the lifetime of the server (no eviction). Add a TTL/size cap or move to Mongo.",
+    "_persist writes the full state on every step but stream_logs are kept only in memory — if backend restarts mid-run, history will show plan without logs. Acceptable for demo.",
+    "CORS allow_origins=['*'] with allow_credentials=True — browsers reject this combo. Not affecting current frontend (no cookies) but fix for correctness.",
+    "/api/plans/{plan_id}/decision does not check current plan status before resuming. A resumed (already booked) plan triggers another GRAPH.invoke which silently no-ops; could return 409 if not awaiting_approval.",
+    "Frontend History component contains nested <button> (DOM-nesting warning)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/backend_test.py (new)",
+    "/app/test_reports/pytest/pytest_results.xml (new)"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "n/a (no auth)",
+  "seed_data_creation": "Tests created several plans in MongoDB; the declined plan was cleaned up via DELETE in test_delete_plan. Other test plans (HITL booked, refused, rejected) remain in the DB as demo history — visible in the UI history table.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend tests live at /app/backend/tests/backend_test.py and run via `pytest backend/tests/backend_test.py`. They rely on REACT_APP_BACKEND_URL env (with a fallback) and an in-process LangGraph checkpointer — do NOT restart backend between create_plan_hitl and approve_decision tests. The UI exposes data-testid for prompt-chip-N (0..5), submit-plan-button, node-0..3 with data-state, terminal-logs, hitl-modal, hitl-approve-button, status-pill, vendor-card-*, history-section, history-row-N, failure-card."
+}

@@ -58,24 +58,7 @@ graph TD;
 | 📅 **Planner** | `src/agents/planner.py` | Build the day timeline + exact budget (via the budget tool) | `EventPlan` |
 | 🛡️ **Compliance** | `src/agents/compliance.py` | Deterministic policy/safety checks; decide auto-approve / escalate / reject | `ComplianceResult` |
 
-## 3. How it satisfies every requirement
-
-| Requirement | Where it lives |
-|-------------|----------------|
-| **3+ agents, distinct roles** | `src/agents/` — intake, venue, planner, compliance |
-| **LangGraph orchestration** | `src/graph.py` — `StateGraph`, nodes, edges, compile |
-| **Shared state across steps** | `src/state.py` — `PlannerState` flows through every node |
-| **2+ tools / integrations** | `src/tools/` — RAG retriever, budget calculator, availability check |
-| **Structured outputs (handoffs)** | `src/schemas.py` — Pydantic models; `llm.with_structured_output(...)` |
-| **Routing / branching** | `src/graph.py` — 4 conditional edges (`route_after_*`) |
-| **RAG / knowledge grounding** | `src/tools/retrieval.py` — embedded vendor catalog, semantic search |
-| **Evaluation (5+ cases)** | `tests/test_cases.py` — 8 scenarios, all paths |
-| **Observability / debugging** | `src/logging_utils.py` — step logs + `runs/trace-*.jsonl`; optional LangSmith |
-| **Guardrails** | `src/guardrails.py` + compliance agent — safety screen, validation, policy checks |
-| **Human-in-the-loop** | `src/graph.py` — `interrupt()` before booking high-impact plans |
-| **Demo-ready** | `python -m src.app` runs end-to-end with sample input |
-
-## 4. Setup (Windows / PowerShell)
+## 3. Setup (Windows / PowerShell)
 
 > Python 3.12 and `git` are assumed installed. Commands use the `py` launcher.
 
@@ -95,7 +78,7 @@ notepad .env        # set OPENAI_API_KEY=sk-...
 
 > **macOS / Linux:** `python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt`, then `cp .env.example .env`.
 
-## 5. Run it
+## 4. Run it
 
 > **Windows tip:** if `.\.venv\Scripts\Activate.ps1` is blocked by execution policy,
 > skip activation and call the venv's Python directly:
@@ -114,7 +97,7 @@ python -m tests.test_cases
 
 Every run also writes a full step-by-step trace to `runs/trace-<id>.jsonl`.
 
-## 6. Project structure
+## 5. Project structure
 
 ```
 multiagent-event-planner/
@@ -142,7 +125,7 @@ multiagent-event-planner/
     └── INDIVIDUAL_CONTRIBUTION_TEMPLATE.md
 ```
 
-## 7. Notes
+## 6.. Notes
 
 - **Security:** the API key lives only in `.env`, which is gitignored. Never commit it.
 - **Cost:** uses `gpt-4o-mini` + `text-embedding-3-small` — a few US cents per full run.
